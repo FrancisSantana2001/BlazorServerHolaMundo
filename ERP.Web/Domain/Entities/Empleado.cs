@@ -24,4 +24,18 @@ public class Empleado
         DatosPersonales =
         Persona.Create(nombre, fechaNacimiento)
     };
+
+    public bool Update(
+        string nombre,
+        DateTime? fechaNacimiento,
+        decimal sueldo)
+    {
+        var change = false;
+        if(DatosPersonales.Nombre != nombre)
+        {
+            DatosPersonales.Nombre = nombre;
+            change = true;
+        }
+        return change;
+    }
 }

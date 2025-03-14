@@ -1,0 +1,104 @@
+﻿@page "/Empleados"
+@rendermode InteractiveServer
+@inject IEmployesService empleadoService;
+<h3>Empleados</h3>
+<div class="card">
+    <div class="card-header">
+        <h2>Tabla de Empleados</h2>
+    </div>
+    <div class="card-body">
+        <div class="form-1">
+            <label>Nombre:</label>
+            <input type="text" placeholder="Ingresar nombre" @bind=Request.DatosPersonales.Nombre/>
+
+            <label>Fecha de Nacimiento</label>
+            <input type="date" @bind=Request.DatosPersonales.FechaDeNacimiento/>
+
+            <label>Sueldo</label>
+            <input  placeholder="Ingrese el sueldo" type="number" @bind=Request.sueldo/>
+        </div>
+    </div>
+    <div class="card-footer">
+        <span class="btn btn-success" @onclick=Agregar>Aceptar</span>
+        <span class="btn btn-danger" @onclick=Clear>Cancelar</span>
+    </div>
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>...</th>
+            <th>Código</th>
+            <th>Empleado</th>
+            <th>Fecha de Nacimiento</th>
+            <th>Sueldo</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Lista)
+        {
+            <tr>
+                <th>
+                    <div class="btn-group">
+                        <span class="btn btn-warning" @onclick="()=>Modificar(item.Id)">Actualizar</span>
+                        <span class="btn btn-danger" @onclick="()=>Eliminar(item.Id)">Eliminar</span>
+                    </div>
+                </th>
+                <th>@item.Id</th>
+                <th>@item.DatosPersonales.Nombre</th>
+                <th>@(item.DatosPersonales.FechaDeNacimiento?.ToString("dd/MM/yyyy") ?? "N/A")</th>
+                <th>@item.sueldo</th>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    public EmpleadoDto Request { get; set; } = new();
+    public List<EmpleadoDto> Lista { get; set; } = [];
+
+    private void Clear()
+    {
+        Request = new();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Consultar();
+    }
+    private async Task Consultar()
+    {
+        Lista = await empleadoService.Consultar("");
+    }
+
+    private async Task Agregar()
+    {
+        var resultado = Request.Id == 0;
+        await empleadoService.Crear(Request);
+        await empleadoService.Actualizar(Request);
+
+        if(resultado)
+        {
+            await Consultar();
+            Clear();
+        }
+    }
+
+    async Task Modificar(int id)
+    {
+        Clear();
+        var (save, message) = await empleadoService.Actualizar(new EmpleadoDto());
+        Request = Lista.Where(m => m.Id == id)
+        .FirstOrDefault() ?? new();
+    }
+
+    private async Task Eliminar(int Id)
+    {
+        var resultado = await empleadoService.Eliminar(Id);
+        if (resultado)
+        {
+            await Consultar();
+        }
+    }
+}
